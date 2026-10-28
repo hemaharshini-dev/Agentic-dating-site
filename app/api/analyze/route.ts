@@ -64,7 +64,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Add APIFY_INSTAGRAM_ACTOR_ID and APIFY_LINKEDIN_ACTOR_ID to the server environment. Each Actor needs a matching input adapter." }, { status: 503 });
     }
 
-    const username = instagramUsername(body.instagramUrl);
+    let username: string;
+    try {
+      username = instagramUsername(body.instagramUrl);
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Enter an Instagram profile URL." }, { status: 400 });
+    }
     const [instagramItems, linkedinItems] = await Promise.all([
       runActor(instagramActor, { usernames: [username], includeAboutSection: false }),
       runActor(linkedinActor, { targetUrls: [body.linkedinUrl], maxPosts: 3 }),
